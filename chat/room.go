@@ -14,6 +14,15 @@ type room struct {
 	clients map[*client]bool
 }
 
+func newRoom() *room {
+	return &room{
+		forward: make(chan []byte),
+		join:    make(chan *client),
+		leave:   make(chan *client),
+		clients: make(map[*client]bool),
+	}
+}
+
 func (r *room) run() {
 	for {
 		select {
@@ -47,7 +56,7 @@ const (
 
 var upgrader = &websocket.Upgrader{ReadBufferSize: socketBufferSize, WriteBufferSize: socketBufferSize}
 
-func (r *room) ServerHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	socket, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatal("ServeHTTP:", err)
