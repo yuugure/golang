@@ -1,6 +1,7 @@
 package main
 
 import (
+	"golang/trace"
 	"log"
 	"net/http"
 
@@ -12,6 +13,7 @@ type room struct {
 	join    chan *client
 	leave   chan *client
 	clients map[*client]bool
+	tracer  trace.Tracer
 }
 
 func newRoom() *room {
@@ -20,6 +22,7 @@ func newRoom() *room {
 		join:    make(chan *client),
 		leave:   make(chan *client),
 		clients: make(map[*client]bool),
+		tracer:  trace.Off(),
 	}
 }
 
@@ -29,20 +32,24 @@ func (r *room) run() {
 		case client := <-r.join:
 			//join
 			r.clients[client] = true
+			r.tracer.Trace("new member join")
 		case client := <-r.leave:
 			//leave
 			delete(r.clients, client)
 			close(client.send)
+			r.tracer.Trace("leave member")
 		case msg := <-r.forward:
 			//send msg all client
 			for client := range r.clients {
 				select {
 				case client.send <- msg:
 					//message send
+					r.tracer.Trace("send message")
 				default:
 					//send fail
 					delete(r.clients, client)
 					close(client.send)
+					r.tracer.Trace("send fail client cleanup")
 				}
 			}
 		}

@@ -27,13 +27,14 @@ func main() {
 	var addr = flag.String("addr", ":8080", "application address")
 	flag.Parse()
 	r := newRoom()
+	//r.tracer = trace.New(os.Stdout)
 	http.Handle("/", &templateHandler{filename: "chat.html"})
 	http.Handle("/room", r)
 	// start chat room
 	go r.run()
 	log.Println("start webserver port: ", *addr)
 	// web server start
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal("ListenAndServe:", err)
 	}
 }
