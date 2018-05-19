@@ -1,4 +1,4 @@
 #!/bin/sh
 
 go build -o chat
-./chat -addr=":3000"
+./chat -addr=":8080"
